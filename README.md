@@ -36,7 +36,7 @@ I experimented different initial values for the state vector x_, covariance matr
 
 ### Build instructions
 ```
-$ git clone https://github.com/ayushgoel24/Unscented-Kalman-Filter-with-LiDAR-and-Radar $Unscented-Kalman-Filter-with-LiDAR-and-Radar
+$ git clone https://github.com/ayushgoel24/Unscented-Kalman-Filter-with-LiDAR-and-Radar Unscented-Kalman-Filter-with-LiDAR-and-Radar
 $ mkdir -p Unscented-Kalman-Filter-with-LiDAR-and-Radar/build && cd Unscented-Kalman-Filter-with-LiDAR-and-Radar/build
 $ cmake .. && make
 $ ./ukf_highway
