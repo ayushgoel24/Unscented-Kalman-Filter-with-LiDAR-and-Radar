@@ -1,4 +1,3 @@
-/* \author Aaron Brown */
 // Handle logic for creating traffic on highway and animating it
 
 #include "render/render.h"
@@ -9,36 +8,43 @@ class Highway
 {
 public:
 
+    // List to store the cars on the highway
     std::vector<Car> traffic;
+    // Ego car
     Car egoCar;
+    // Tools object for utility functions
     Tools tools;
+    // Flag to indicate if the test passes or fails
     bool pass = true;
-    std::vector<double> rmseThreshold = {0.30,0.16,0.95,0.70};
-    std::vector<double> rmseFailLog = {0.0,0.0,0.0,0.0};
+    // Threshold values for Root Mean Square Error (RMSE) test
+    std::vector<double> rmseThreshold = {0.30, 0.16, 0.95, 0.70};
+    // Log of RMSE values that failed the threshold
+    std::vector<double> rmseFailLog = {0.0, 0.0, 0.0, 0.0};
     Lidar* lidar;
 
     // Parameters
     // --------------------------------
-    // Set which cars to track with UKF
+    // Sets which cars to track with UKF
     std::vector<bool> trackCars = {true,true,true};
-    // Visualize sensor measurements
+    // Flag to visualize lidar sensor measurements
     bool visualize_lidar = true;
+    // Flag to visualize radar sensor measurements
     bool visualize_radar = true;
+    // Flag to visualize point cloud data
     bool visualize_pcd = false;
-    // Predict path in the future using UKF
+    // Time in seconds to project the car's path in the future using UKF
     double projectedTime = 0;
+    // Number of steps to project the car's path in the future using UKF
     int projectedSteps = 0;
     // --------------------------------
 
-    Highway(pcl::visualization::PCLVisualizer::Ptr& viewer)
-    {
+    Highway(pcl::visualization::PCLVisualizer::Ptr& viewer) {
 
         tools = Tools();
-
+        // Create ego car
         egoCar = Car(Vect3(0, 0, 0), Vect3(4, 2, 2), Color(0, 1, 0), 0, 0, 2, "egoCar");
-
+        // Creates car1 and set its instructions
         Car car1(Vect3(-10, 4, 0), Vect3(4, 2, 2), Color(0, 0, 1), 5, 0, 2, "car1");
-
         std::vector<accuation> car1_instructions;
         accuation a = accuation(0.5*1e6, 0.5, 0.0);
         car1_instructions.push_back(a);
@@ -48,7 +54,6 @@ public:
         car1_instructions.push_back(a);
         a = accuation(4.4*1e6, -2.0, 0.0);
         car1_instructions.push_back(a);
-
         car1.setInstructions(car1_instructions);
         if( trackCars[0] )
         {
@@ -57,6 +62,7 @@ public:
         }
         traffic.push_back(car1);
 
+        // Creates car2 and set its instructions
         Car car2(Vect3(25, -4, 0), Vect3(4, 2, 2), Color(0, 0, 1), -6, 0, 2, "car2");
         std::vector<accuation> car2_instructions;
         a = accuation(4.0*1e6, 3.0, 0.0);
@@ -70,7 +76,8 @@ public:
             car2.setUKF(ukf2);
         }
         traffic.push_back(car2);
-
+        
+        // Creates car3 and set its instructions
         Car car3(Vect3(-12, 0, 0), Vect3(4, 2, 2), Color(0, 0, 1), 1, 0, 2, "car3");
         std::vector<accuation> car3_instructions;
         a = accuation(0.5*1e6, 2.0, 1.0);
@@ -95,9 +102,10 @@ public:
         }
         traffic.push_back(car3);
 
+        // Creates Lidar object for sensing the traffic cars
         lidar = new Lidar(traffic,0);
 
-        // render environment
+        // Render the highway and cars
         renderHighway(0,viewer);
         egoCar.render(viewer);
         car1.render(viewer);
@@ -105,20 +113,22 @@ public:
         car3.render(viewer);
     }
 
+    // Function to simulate the highway and update the viewer
     void stepHighway(double egoVelocity, long long timestamp, int frame_per_sec, pcl::visualization::PCLVisualizer::Ptr& viewer)
     {
 
+        // Load point cloud data if visualize_pcd is enabled
         if(visualize_pcd)
         {
-            pcl::PointCloud<pcl::PointXYZ>::Ptr trafficCloud = tools.loadPcd("../src/sensors/data/pcd/highway_"+std::to_string(timestamp)+".pcd");
+            pcl::PointCloud<pcl::PointXYZ>::Ptr trafficCloud = tools.loadPcd("../src/sensors/data/pcd/highway_" + std::to_string(timestamp) + ".pcd");
             renderPointCloud(viewer, trafficCloud, "trafficCloud", Color((float)184/256,(float)223/256,(float)252/256));
         }
-
 
         // render highway environment with poles
         renderHighway(egoVelocity*timestamp/1e6, viewer);
         egoCar.render(viewer);
 
+        // Move each traffic car and perform sensor sensing
         for (int i = 0; i < traffic.size(); i++)
         {
             traffic[i].move((double)1/frame_per_sec, timestamp);
@@ -143,6 +153,8 @@ public:
 
             }
         }
+        
+        // Display RMSE values
         viewer->addText("Accuracy - RMSE:", 30, 300, 20, 1, 1, 1, "rmse");
         VectorXd rmse = tools.CalculateRMSE(tools.estimations, tools.ground_truth);
         viewer->addText(" X: "+std::to_string(rmse[0]), 30, 275, 20, 1, 1, 1, "rmse_x");
@@ -150,6 +162,7 @@ public:
         viewer->addText("Vx: "	+std::to_string(rmse[2]), 30, 225, 20, 1, 1, 1, "rmse_vx");
         viewer->addText("Vy: "	+std::to_string(rmse[3]), 30, 200, 20, 1, 1, 1, "rmse_vy");
 
+        // Check if RMSE values exceed the threshold
         if(timestamp > 1.0e6)
         {
 
@@ -174,6 +187,8 @@ public:
                 pass = false;
             }
         }
+        
+        // Display RMSE failure information if the test fails
         if(!pass)
         {
             viewer->addText("RMSE Failed Threshold", 30, 150, 20, 1, 0, 0, "rmse_fail");
