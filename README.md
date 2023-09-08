@@ -28,22 +28,28 @@ This initiative aims to improve vehicular tracking by synergizing data from LiDA
 
 5. **Accuracy Metrics**: Root Mean Squared Error (RMSE) values, calculated in real-time, offer insights into the (x,y) positional and (Vx, Vy) velocity accuracies of our UKF predictions.
 
----
-
 <img src="media/ukf_result.png" width="800" height="500" />
+
+---
 
 #### **Algorithm Performance and Tuning**
 
 Parameter tuning in UKF is imperative for optimal performance. Several parameters, including the state vector `x_`, covariance matrix `P_`, longitudinal acceleration noise `std_a_`, and yaw acceleration noise `std_yawdd_`, underwent rigorous testing. The chosen set consistently ensures that RMSE values remain within stipulated thresholds, underscoring the system's reliability.
 
+<img src="media/ukf_output.gif" width="800" height="500" />
+
 ---
 
 #### **Build Requirements**
 
-- **cmake** >= 3.5: [Installation Instructions](https://cmake.org/install/)
-- **make** >= 4.1 (Linux, Mac), 3.81 (Windows)
-- **gcc/g++** >= 5.4
-- **PCL (Point Cloud Library) 1.2**: Vital for processing and visualizing point cloud data from LiDAR.
+- cmake >= 3.5
+    * All OSes: [Installation Instructions](https://cmake.org/install/)
+- make >= 4.1 (Linux, Mac), 3.81 (Windows)
+    * Linux: make is installed by default on most Linux distros
+- gcc/g++ >= 5.4
+    * Linux: gcc/g++ is installed by default on most Linux distros
+- PCL (Point Cloud Library) 1.2
+    * Vital for processing and visualizing point cloud data from LiDAR.
 
 ---
 
